@@ -1,7 +1,9 @@
 .DS_Store
 __pycache__
 data_base/data/*
+!data_base/data/.gitkeep
 misc/logs/*
+!misc/logs/.gitkeep
 agents/*
 !agents/best_net_config.json
 !agents/sample.json
