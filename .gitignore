@@ -1,2 +1,8 @@
 .DS_Store
 __pycache__
+data_base/*
+misc/logs/*
+agents/*
+!agents/best_net_config.json
+!agents/sample.json
+!agents/sample.json.orig
