@@ -1,1 +1,0 @@
-{"ConvLayer/weight_decay": 167.0386945721304, "EIIE_Dense/weight_decay": 1.2702154419573466, "EIIE_Output/weight_decay": 1.3291521631883427, "Pooling/kernel_size": 3, "learning_rate": 0.7081099608058052, "window_size": 3}
