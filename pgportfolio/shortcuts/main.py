@@ -2,8 +2,8 @@ import os
 import json
 import logging
 from pathlib import Path
-from pgportfolio.others.tools import serialize
-
+from pgportfolio.others.tools import serialize, cal_out_of_sample_perf
+from hyperopt import STATUS_OK
 
 def _make_and_copy(config=None):
     from shutil import copyfile
@@ -34,10 +34,9 @@ def _make_and_copy(config=None):
                 json.dump(config, of)
     return pn, number
 
-def objective(kwargs, main_path = ".", types = "agents"):
+def objective(kwargs, args, main_path = ".", types = "agents"):
     from json import loads
     import os
-    print("*"*30, os.getcwd())
     with open(f"{main_path}/{types}/sample.json") as file:
         config = json.loads(file.read())
     d = kwargs["layers"][2]

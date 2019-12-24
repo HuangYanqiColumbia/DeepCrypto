@@ -57,7 +57,7 @@ def main():
                     continue
                 else:
                     main_path, types = "../..", "mongo_workers"
-                    objective = partial(objective, main_path = main_path, types = types)
+                    objective = partial(objective, args = args, main_path = main_path, types = types)
                     best = fmin(fn=objective,
                         space=HP_SPACE,
                         algo=tpe.suggest,
@@ -68,25 +68,27 @@ def main():
                     with open(f"{main_path}/{types}/best_net_config.json", 'w') as of:
                         json.dump(best, of)
         elif args.train_option=="normal":
-            p = Path(f"./agents/trials")
-            p.mkdir(parents=True, exist_ok=True)
-            if os.path.isfile(f"./agents/trials/trials.p"):
-                with open(f"./agents/trials/trials.p", "rb") as file_trials:
-                    trials = pickle.load(file_trials)
-                print("trials loaded")
-            else:
-                trials = Trials()
-            best = fmin(fn=objective,
-                space=HP_SPACE,
-                algo=tpe.suggest,
-                max_evals=len(trials._dynamic_trials)+1, 
-                trials = trials
-            )
-            serialize(best)
-            with open(f"./agents/best_net_config.json", 'w') as of:
-                json.dump(best, of)
-            with open(f"./agents/trials/trials.p", "wb") as file_trials:    
-                pickle.dump(trials, file_trials)
+            for _ in range(args.rounds):
+                p = Path(f"./agents/trials")
+                p.mkdir(parents=True, exist_ok=True)
+                if os.path.isfile(f"./agents/trials/trials.p"):
+                    with open(f"./agents/trials/trials.p", "rb") as file_trials:
+                        trials = pickle.load(file_trials)
+                    print("trials loaded")
+                else:
+                    trials = Trials()
+                objective = partial(objective, args = args)
+                best = fmin(fn=objective,
+                    space=HP_SPACE,
+                    algo=tpe.suggest,
+                    max_evals=len(trials._dynamic_trials)+10, 
+                    trials = trials
+                )
+                serialize(best)
+                with open(f"./agents/best_net_config.json", 'w') as of:
+                    json.dump(best, of)
+                with open(f"./agents/trials/trials.p", "wb") as file_trials:    
+                    pickle.dump(trials, file_trials)
         else:
             raise NameError(f"train_option should be set to be mongo or normal, but {args.train_option} is supplied!")
 
