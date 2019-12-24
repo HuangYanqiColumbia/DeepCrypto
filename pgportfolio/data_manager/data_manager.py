@@ -15,6 +15,8 @@ class DataManager():
         for item in self._items:
             l = []
             for year in os.listdir(self._dbase_path):
+                if year.startswith("."):
+                    continue
                 for date in os.listdir(f"{self._dbase_path}/{year}"):  
                     if datetime.strptime(date, "%Y%m%d")>self._end or datetime.strptime(date, "%Y%m%d")<self._start:
                         continue            

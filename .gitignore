@@ -2,9 +2,11 @@
 __pycache__
 data_base/data/*
 !data_base/data/.gitkeep
+data_base/mongodb/*
+!data_base/mongodb/.gitkeep
 misc/logs/*
 !misc/logs/.gitkeep
 agents/*
-!agents/best_net_config.json
 !agents/sample.json
-!agents/sample.json.orig
+mongo_workers/*
+!mongo_workers/.gitkeep

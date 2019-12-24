@@ -3,7 +3,7 @@ import pandas as pd
 
 def serialize(dic: dict):
     def func(dic, k):
-        if type(dic[k])==np.int32:
+        if (type(dic[k]) == np.int32) or (type(dic[k]) == np.int64):
             dic[k] = int(dic[k])
     for k, v in dic.items():
         if isinstance(v, dict):

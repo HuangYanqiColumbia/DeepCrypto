@@ -4,7 +4,6 @@ if not os.sys.warnoptions:
     warnings.simplefilter("ignore")
 
 import json
-import h5py
 import pickle
 import logging
 import numpy as np
@@ -12,6 +11,7 @@ import pandas as pd
 from pathlib import Path
 from datetime import datetime
 from argparse import ArgumentParser
+from multiprocessing import Process
 from hyperopt import fmin, hp, tpe, Trials, STATUS_OK
 from hyperopt.mongoexp import MongoTrials
 from pgportfolio.shortcuts.train import train
@@ -26,6 +26,8 @@ parser.add_argument("-n", "--num", default=1, type=int)
 parser.add_argument("-s", "--start", default="20180101")
 parser.add_argument("-e", "--end", default="20190609")
 parser.add_argument("--train_option", default="normal")
+parser.add_argument("-w", "--workers", default="4", type=int)
+parser.add_argument("-r", "--rounds", default="10", type=int)
 
 args = parser.parse_args()
 
@@ -81,16 +83,29 @@ def main():
         backtest(args.num)
     elif args.mode=="hyperopt":
         if args.train_option=="mongo":
-            trials = MongoTrials(f'mongo://localhost:1234/my_db/jobs')
-            best = fmin(fn=objective,
-                space=HP_SPACE,
-                algo=tpe.suggest,
-                max_evals=1, 
-                trials = trials
-            )
-            serialize(best)
-            with open(f"./agents/best_net_config.json", 'w') as of:
-                json.dump(best, of)
+            for _ in range(args.round):
+                trials = MongoTrials(f'mongo://localhost:1234/my_db/jobs')
+                pid = os.fork()
+                if pid == 0:
+#                     processes = [Process(
+#                         target = os.system("hyperopt-mongo-worker --mongo=localhost:1234/my_db --poll-interval=0.1") 
+#                     ) for _ in range(args.workers)]
+#                     for p in processes:
+#                         p.start()
+                        
+#                     for p in processes:
+#                         p.join()
+                    continue
+                else:
+                    best = fmin(fn=objective,
+                        space=HP_SPACE,
+                        algo=tpe.suggest,
+                        max_evals=len(trials._trials) + 8, 
+                        trials = trials
+                    )
+                    serialize(best)
+                    with open(f"./agents/best_net_config.json", 'w') as of:
+                        json.dump(best, of)
         elif args.train_option=="normal":
             p = Path(f"./agents/trials")
             p.mkdir(parents=True, exist_ok=True)
