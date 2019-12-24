@@ -9,6 +9,7 @@ import logging
 import numpy as np
 import pandas as pd
 from pathlib import Path
+from functools import partial
 from datetime import datetime
 from argparse import ArgumentParser
 from multiprocessing import Process
@@ -16,8 +17,11 @@ from hyperopt import fmin, hp, tpe, Trials, STATUS_OK
 from hyperopt.mongoexp import MongoTrials
 from pgportfolio.shortcuts.train import train
 from pgportfolio.others.constants import HP_SPACE
-from pgportfolio.others.tools import serialize, cal_out_of_sample_perf
+from pgportfolio.shortcuts.main import objective
 from pgportfolio.shortcuts.backtest import backtest
+from pgportfolio.others.tools import serialize, cal_out_of_sample_perf
+
+
 
 parser = ArgumentParser(description="Automatic tune hyperparameters")
 parser.add_argument("-m", "--mode", default="train", type=str)
@@ -26,64 +30,19 @@ parser.add_argument("-n", "--num", default=1, type=int)
 parser.add_argument("-s", "--start", default="20180101")
 parser.add_argument("-e", "--end", default="20190609")
 parser.add_argument("--train_option", default="normal")
-parser.add_argument("-w", "--workers", default="4", type=int)
 parser.add_argument("-r", "--rounds", default="10", type=int)
 
 args = parser.parse_args()
 
-def _make_and_copy(config=None):
-    from shutil import copyfile
-    number = 1
-    pn = 'agents/agent_0001'
-    if os.path.exists(pn):
-        number = max([
-            int(dire[len('agent_'):]) for dire \
-            in os.listdir(f'agents') \
-            if dire.startswith('agent')
-        ]) + 1
-        s = "{:04d}".format(number)
-        pn = f'agents/agent_{s}'
-
-    for dire in ['summary', 'session', 'results']:
-        p = Path(pn+'/'+dire)
-        if not p.is_dir():
-            p.mkdir(parents=True, exist_ok=True)
-            logging.warning('%s not found and created' %(pn+'/'+dire))
-    if not Path(pn+'/net_config.json').is_file():
-        if config is None:
-            copyfile('agents/sample.json', pn+'/net_config.json')
-            logging.warning('net_config.json copied from sample')
-        elif config is not None:
-            logging.warning("assume config provided is complete")
-            with open(f"{pn}/net_config.json", 'w') as of:
-                serialize(config)
-                json.dump(config, of)
-    return pn, number
-
-def objective(kwargs):
-    from json import loads
-    with open(f"./agents/sample.json") as file:
-        config = json.loads(file.read())
-    d = kwargs["layers"][2]
-    if d["kernel_size"]!=d["strides"]:
-        return 1e04
-    config.update(kwargs)
-    _, num = _make_and_copy(config=config)
-    os.system(f"python main.py --mode=train --num={num}")
-    os.system(f"python main.py --mode=backtest --lag={args.lag} --num={num}")
-    return {
-        "loss": -cal_out_of_sample_perf(num), 
-        "status": STATUS_OK
-    }
-
 def main():
+    global objective
     if args.mode=="train":
         train(args.num)
     elif args.mode=="backtest":
         backtest(args.num)
     elif args.mode=="hyperopt":
         if args.train_option=="mongo":
-            for _ in range(args.round):
+            for _ in range(args.rounds):
                 trials = MongoTrials(f'mongo://localhost:1234/my_db/jobs')
                 pid = os.fork()
                 if pid == 0:
@@ -97,6 +56,8 @@ def main():
 #                         p.join()
                     continue
                 else:
+                    main_path, types = "../..", "mongo_workers"
+                    objective = partial(objective, main_path = main_path, types = types)
                     best = fmin(fn=objective,
                         space=HP_SPACE,
                         algo=tpe.suggest,
@@ -104,7 +65,7 @@ def main():
                         trials = trials
                     )
                     serialize(best)
-                    with open(f"./agents/best_net_config.json", 'w') as of:
+                    with open(f"{main_path}/{types}/best_net_config.json", 'w') as of:
                         json.dump(best, of)
         elif args.train_option=="normal":
             p = Path(f"./agents/trials")

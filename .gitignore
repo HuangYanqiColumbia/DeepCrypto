@@ -10,3 +10,4 @@ agents/*
 !agents/sample.json
 mongo_workers/*
 !mongo_workers/.gitkeep
+!mongo_workers/sample.json
