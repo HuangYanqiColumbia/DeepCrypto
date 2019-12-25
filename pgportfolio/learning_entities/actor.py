@@ -8,6 +8,15 @@ import numpy as np
 import tensorflow as tf
 from pgportfolio.learning_entities.network import CNN
 
+import logging 
+logger = logging.getLogger('actor')
+hdlr = logging.FileHandler("./misc/logs/actor.log")
+formatter = logging.Formatter('%(name)s - %(levelname)s\n%(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr)
+logger.setLevel(logging.DEBUG)
+
+
 class ActorNetwork(object):
     def __init__(self, sess, config):
         self.sess = sess
@@ -23,7 +32,7 @@ class ActorNetwork(object):
 
         self.close = tf.placeholder(tf.float32,[self._input_num, self._window_size+1, self.a_dim])
         close = self.close
-        pnl = self.out * ((close[:,1:,:]-close[:,:-1,:])/close[:,:-1,:])[:,-1,:]
+        pnl = self.out * ((close[:,1:,:] - close[:,:-1,:]) / close[:,:-1,:])[:,-1,:]
         
         weight = self.inputs[2]
         commission = tf.abs(self.out - weight) * self._config["training"]["trading_consumption"]
@@ -31,8 +40,9 @@ class ActorNetwork(object):
         returns = pnl - commission
         self.loss = - tf.reduce_mean(tf.reduce_sum(returns,axis=1),axis=0)
 
-        self.optimize = tf.train.AdamOptimizer(self.learning_rate).\
-                minimize(self.loss)
+        optimizer = tf.train.AdamOptimizer(self.learning_rate)
+        self._grads_and_vars = optimizer.compute_gradients(self.loss)
+        self.optimize = optimizer.apply_gradients(self._grads_and_vars)
 
         self.num_trainable_vars = len(self.network_params)
 
@@ -57,7 +67,7 @@ class ActorNetwork(object):
         assert (not np.isinf(inputs[0]).any())
         assert (not np.isinf(inputs[2]).any())
         assert (not np.isinf(inputs[2]).any())
-        
+
         return self.sess.run(self.out, feed_dict={
             self.inputs[0]: inputs[0],
             self.inputs[1]: inputs[1], 

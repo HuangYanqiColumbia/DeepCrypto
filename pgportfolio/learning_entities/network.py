@@ -53,18 +53,21 @@ class CNN(NeuralNetWork):
                                                  weight_decay=layer["weight_decay"],
                                                  weights_init='variance_scaling')
             elif layer["type"] == "Pooling":
+                """
                 network_max = tflearn.layers.conv.max_pool_2d(network\
                                                               , kernel_size = layer["kernel_size"]\
                                                               , strides = layer["strides"])
                 network_avg = tflearn.layers.conv.avg_pool_2d(network\
                                                               , kernel_size = layer["kernel_size"]\
                                                               , strides = layer["strides"])  
+                network = tf.concat([network_max, network_avg], -1)
                 '''
 				network_l2 = tf.sqrt(tflearn.layers.conv.avg_pool_2d(tf.square(network)\
                                                                      , kernel_size = layer["kernel_size"]\
                                                                      , strides = layer["strides"]))
                 '''
-                network = tf.concat([network_max, network_avg], -1)
+                """
+                continue
             elif layer["type"] == "EIIE_Output":
                 width = network.get_shape()[2]
                 height = network.get_shape()[1]
@@ -77,9 +80,23 @@ class CNN(NeuralNetWork):
                                                  weight_decay=layer["weight_decay"],
                                                  weights_init='variance_scaling')
                 network = network[:, :, 0, 0]
-                network = tf.math.sigmoid(network) - 0.5
+                network = self._batch_normalize_2d(network)
+                network = tflearn.activations.softmax(network)
             else:
                 raise ValueError("the layer {} not supported.".format(layer["type"]))
+        return network
+
+    @staticmethod
+    def _batch_normalize_2d(network):
+        mean = tf.tile(
+            tf.math.reduce_mean(network, axis = 1)[:, None]
+            , multiples = (1, tf.shape(network)[1])
+        )
+        std = tf.tile(
+            tf.math.reduce_std(network, axis = 1)[:, None]
+            , multiples = (1, tf.shape(network)[1])
+        )
+        network = (network - mean) / std
         return network
 
     @staticmethod

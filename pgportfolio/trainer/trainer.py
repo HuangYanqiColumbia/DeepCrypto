@@ -10,6 +10,13 @@ import tensorflow as tf
 from pgportfolio.learning_entities.actor import ActorNetwork
 from pgportfolio.data_manager.replay_buffer import ReplayBuffer
 
+import logging 
+logger = logging.getLogger('trainer')
+hdlr = logging.FileHandler("./misc/logs/trainer.log")
+formatter = logging.Formatter('%(name)s - %(levelname)s\n%(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr)
+logger.setLevel(logging.DEBUG)
 
 class Trainer():
     def __init__(self, sess, config, global_step: int\
@@ -84,6 +91,10 @@ class Trainer():
     
     def _evolve(self, s, last_s, j):
         a = self._actor.predict([s[0][None,:],1,self._pvm[[-1,]]])
+        if logger.level <= logging.DEBUG:
+            logger.debug(
+                a
+            )
         self._pvm = np.append(self._pvm, a, axis=0)
         s2, close = self._env.step(a[0])
         if len(self._pvm)>=3:

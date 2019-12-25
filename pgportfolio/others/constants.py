@@ -1,6 +1,9 @@
+import numpy as np
 from hyperopt import hp
 
 pooling_size = hp.choice("Pooling/kernel_size", [2, 5, 10, 20])
+
+base10 = lambda x: np.log(10 ** x)
 
 HP_SPACE = {
     "input": {
@@ -18,14 +21,14 @@ HP_SPACE = {
 			"padding": "valid", 
 			"activation_function": "relu", 
 			"filter_shape": [1, 5], 
-			"weight_decay": hp.loguniform("ConvLayer/weight_decay", -2, 9), 
+			"weight_decay": hp.loguniform("ConvLayer/weight_decay", base10(-1), base10(1)), 
 			"regularizer": "L1"
 		},
 		{
 			"activation_function": "relu", 
 			"type": "EIIE_Dense", 
 			"filter_number": 20, 
-			"weight_decay": hp.loguniform("EIIE_Dense/weight_decay", -2, 9), 
+			"weight_decay": hp.loguniform("EIIE_Dense/weight_decay", base10(-1), base10(1)), 
 			"regularizer": "L1"
         },
         {
@@ -35,7 +38,7 @@ HP_SPACE = {
         },  		
 		{
 			"type": "EIIE_Output", 
-			"weight_decay": hp.loguniform("EIIE_Output/weight_decay", -2, 9), 
+			"weight_decay": hp.loguniform("EIIE_Output/weight_decay", base10(-1), base10(1)), 
 			"regularizer": "L1"
 		}
 	],
@@ -44,7 +47,7 @@ HP_SPACE = {
         "buffer_biased": 5e-04,
         "decay_rate": 1,
         "decay_steps": 50000,
-        "learning_rate": hp.loguniform("learning_rate", -5, 2),
+        "learning_rate": hp.loguniform("learning_rate", base10(-5), base10(-2)),
         "tau": 0.01,
         "gamma": 1,
         "steps": 500000,

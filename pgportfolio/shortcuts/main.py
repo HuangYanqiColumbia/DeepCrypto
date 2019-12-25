@@ -31,7 +31,7 @@ def _make_and_copy(config=None):
             logging.warning("assume config provided is complete")
             with open(f"{pn}/net_config.json", 'w') as of:
                 serialize(config)
-                json.dump(config, of)
+                json.dump(config, of, indent=2)
     return pn, number
 
 def objective(kwargs, args, main_path = ".", types = "agents"):
