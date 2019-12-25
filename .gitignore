@@ -16,3 +16,4 @@ mongo_workers/*
 !mongo_workers/sample.json
 notebooks/*
 !notebooks/.gitkeep
+.vscode

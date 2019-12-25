@@ -31,7 +31,6 @@ class CNN(NeuralNetWork):
     def _build_network(self, layers):
         network = tf.transpose(self.input_tensor, [0, 2, 3, 1])
         # [batch, assets, window, features]
-        network = network
         for _, layer in enumerate(layers):
             if layer["type"] == "EIIE_Dense":
                 width = network.get_shape()[2]
@@ -53,20 +52,16 @@ class CNN(NeuralNetWork):
                                                  weight_decay=layer["weight_decay"],
                                                  weights_init='variance_scaling')
             elif layer["type"] == "Pooling":
-                """
-                network_max = tflearn.layers.conv.max_pool_2d(network\
-                                                              , kernel_size = layer["kernel_size"]\
-                                                              , strides = layer["strides"])
-                network_avg = tflearn.layers.conv.avg_pool_2d(network\
-                                                              , kernel_size = layer["kernel_size"]\
-                                                              , strides = layer["strides"])  
-                network = tf.concat([network_max, network_avg], -1)
-                '''
-				network_l2 = tf.sqrt(tflearn.layers.conv.avg_pool_2d(tf.square(network)\
-                                                                     , kernel_size = layer["kernel_size"]\
-                                                                     , strides = layer["strides"]))
-                '''
-                """
+                # network_max = tflearn.layers.conv.max_pool_2d(network\
+                #                                               , kernel_size = layer["kernel_size"]\
+                #                                               , strides = layer["strides"])
+                # network_avg = tflearn.layers.conv.avg_pool_2d(network\
+                #                                               , kernel_size = layer["kernel_size"]\
+                #                                               , strides = layer["strides"])  
+                # network_l2 = tf.sqrt(tflearn.layers.conv.avg_pool_2d(tf.square(network)\
+                #                                               , kernel_size = layer["kernel_size"]\
+                #                                               , strides = layer["strides"]))
+                # network = tf.concat([network_max, network_avg, network_l2], -1)
                 continue
             elif layer["type"] == "EIIE_Output":
                 width = network.get_shape()[2]
@@ -79,6 +74,7 @@ class CNN(NeuralNetWork):
                                                  regularizer=layer["regularizer"],
                                                  weight_decay=layer["weight_decay"],
                                                  weights_init='variance_scaling')
+                self.weight1 = network.W 
                 network = network[:, :, 0, 0]
                 network = self._batch_normalize_2d(network)
                 network = tflearn.activations.softmax(network)
