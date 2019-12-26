@@ -15,6 +15,7 @@ formatter = logging.Formatter('%(name)s - %(levelname)s\n%(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
 logger.setLevel(logging.DEBUG)
+logger.propagate = False
 
 
 class ActorNetwork(object):
@@ -32,10 +33,11 @@ class ActorNetwork(object):
 
         self.close = tf.placeholder(tf.float32,[self._input_num, self._window_size+1, self.a_dim])
         close = self.close
-        pnl = self.out * ((close[:,1:,:] - close[:,:-1,:]) / close[:,:-1,:])[:,-1,:]
+        returns = ((close[:,1:,:] - close[:,:-1,:]) / close[:,:-1,:])
+        pnl = self.out * returns[:,-1,:]
         
         weight = self.inputs[2]
-        commission = tf.abs(self.out - weight) * self._config["training"]["trading_consumption"]
+        commission = tf.abs(self.out - weight * (returns[:, -2, :] + 1)) * self._config["training"]["trading_consumption"]
         
         returns = pnl - commission
         self.loss = - tf.reduce_mean(tf.reduce_sum(returns,axis=1),axis=0)
@@ -55,6 +57,21 @@ class ActorNetwork(object):
         self.out = self._net.output
 
     def train(self, inputs, close, a):
+        if logger.level <= logging.DEBUG:   
+            logger.debug(
+                self.sess.run(self._grads_and_vars[0][0], feed_dict={
+                    self.inputs[0]: inputs[0],
+                    self.inputs[1]: inputs[1],
+                    self.inputs[2]: a, 
+                    self.close: close
+            })[:, :, :, 2])
+            logger.debug(
+                self.sess.run(self._grads_and_vars[0][1], feed_dict={
+                    self.inputs[0]: inputs[0],
+                    self.inputs[1]: inputs[1],
+                    self.inputs[2]: a, 
+                    self.close: close
+            })[:, :, :, 2])
         self.sess.run(self.optimize, feed_dict={
             self.inputs[0]: inputs[0],
             self.inputs[1]: inputs[1],

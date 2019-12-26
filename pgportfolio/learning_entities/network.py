@@ -74,7 +74,6 @@ class CNN(NeuralNetWork):
                                                  regularizer=layer["regularizer"],
                                                  weight_decay=layer["weight_decay"],
                                                  weights_init='variance_scaling')
-                self.weight1 = network.W 
                 network = network[:, :, 0, 0]
                 network = self._batch_normalize_2d(network)
                 network = tflearn.activations.softmax(network)

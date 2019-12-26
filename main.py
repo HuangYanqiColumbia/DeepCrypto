@@ -20,7 +20,7 @@ from pgportfolio.others.constants import HP_SPACE
 from pgportfolio.shortcuts.main import objective
 from pgportfolio.shortcuts.backtest import backtest
 from pgportfolio.others.tools import serialize, cal_out_of_sample_perf
-
+from pgportfolio.others.tools import clear_var_files, clear_var_files_for_agent
 
 
 parser = ArgumentParser(description="Automatic tune hyperparameters")
@@ -46,14 +46,14 @@ def main():
                 trials = MongoTrials(f'mongo://localhost:1234/my_db/jobs')
                 pid = os.fork()
                 if pid == 0:
-#                     processes = [Process(
-#                         target = os.system("hyperopt-mongo-worker --mongo=localhost:1234/my_db --poll-interval=0.1") 
-#                     ) for _ in range(args.workers)]
-#                     for p in processes:
-#                         p.start()
+                    # processes = [Process(
+                    #     target = os.system("hyperopt-mongo-worker --mongo=localhost:1234/my_db --poll-interval=0.1") 
+                    # ) for _ in range(args.workers)]
+                    # for p in processes:
+                    #     p.start()
                         
-#                     for p in processes:
-#                         p.join()
+                    # for p in processes:
+                    #     p.join()
                     continue
                 else:
                     main_path, types = "../..", "mongo_workers"
@@ -91,6 +91,10 @@ def main():
                     pickle.dump(trials, file_trials)
         else:
             raise NameError(f"train_option should be set to be mongo or normal, but {args.train_option} is supplied!")
+    elif args.mode == "clear_agent":
+        clear_var_files_for_agent(args.num, root=".")
+    elif args.mode == "clear":
+        clear_var_files(root = ".")
 
 if __name__=="__main__":
     main()

@@ -17,6 +17,7 @@ formatter = logging.Formatter('%(name)s - %(levelname)s\n%(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
 logger.setLevel(logging.DEBUG)
+logger.propagate = False
 
 class Trainer():
     def __init__(self, sess, config, global_step: int\
@@ -93,7 +94,7 @@ class Trainer():
         a = self._actor.predict([s[0][None,:],1,self._pvm[[-1,]]])
         if logger.level <= logging.DEBUG:
             logger.debug(
-                a
+                a[0, :5]
             )
         self._pvm = np.append(self._pvm, a, axis=0)
         s2, close = self._env.step(a[0])
