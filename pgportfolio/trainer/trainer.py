@@ -16,7 +16,7 @@ hdlr = logging.FileHandler("./misc/logs/trainer.log")
 formatter = logging.Formatter('%(name)s - %(levelname)s\n%(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 logger.propagate = False
 
 class Trainer():
