@@ -53,8 +53,8 @@ class Backtester():
     def _evolve(self, s, last_s, j):
         a = self._actor.predict([s[0][None,:],1,self._pvm[[-1,]]])  
         s2, close, t = self._env.step(a[0], time_index=True)
-        self._alphas = np.append(self._alphas,(np.append([t],np.reshape(a,(self._actor.a_dim,))))[None,:], axis=0) # a*ret.shift(-1) = rewards.shift(-1)
-        self._rewards = np.append(self._rewards, [[t,self._env.reward]], axis=0) #rewards.index: realized date
+        self._alphas = np.append(self._alphas,(np.append([t],np.reshape(a,(self._actor.a_dim,))))[None,:], axis=0)
+        self._rewards = np.append(self._rewards, [[t,self._env.reward]], axis=0) #rewards.index: associated investment decision date
         if len(self._pvm)>=3:
             self._replay_buffer.add(s, close, len(self._pvm)-2)
         if self._replay_buffer.size() > int(self._config["training"]["batch_size"]):

@@ -40,4 +40,25 @@ def clear_var_files(root = "."):
     for file in os.listdir(agents_path):
         if file == "sample.json":
             continue
-        os.remove(f"{agents_path}/{file}")    
+        os.remove(f"{agents_path}/{file}")
+
+def load_minutely_panel(root = "."):
+    sub_db_path = f"{root}/data_base/minute_data"
+    data = dict()
+    for file in os.listdir(sub_db_path):
+        if file == ".gitkeep":
+            continue
+        data[file[:-len(".csv")]] = pd.read_csv(f"{sub_db_path}/{file}", index_col = 0)
+    return pd.Panel(data)
+        
+def backtest_with_lag(alpha, root = ".", lag: int = 1):
+    panel = load_minutely_panel(root)
+    close = panel.close; del panel
+    close = close.shift(- lag).loc[alpha.index]
+    retrn = (close.shift(-1) - close) / close
+    pnls = (alpha * retrn).sum(axis = 1)
+    return pnls
+    
+        
+    
+    

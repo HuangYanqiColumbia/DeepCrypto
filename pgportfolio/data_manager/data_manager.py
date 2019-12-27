@@ -26,7 +26,7 @@ class DataManager():
                             f"{item}.parquet.gzip", engine="fastparquet"
                         )
                     )
-            dfs[item] = pd.concat(l, axis=0)
+            dfs[item] = pd.concat(l, axis=0).sort_index()
         self._data_matrices = pd.Panel(dfs).transpose(0, 2, 1)
     
     @property

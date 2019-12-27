@@ -24,6 +24,7 @@ class Env():
         self._data_manager = DataManager(start=self._start_date, end=self._end_date)
         self._data_manager.load_data()
         self._data_matrices = self._data_manager.data_matrices # (features, assets, times) 
+        assert self._data_matrices.iloc[0].T.index.is_monotonic_increasing
         self._data = self._data_matrices.values  
     
     def reset(self, config):
@@ -57,5 +58,5 @@ class Env():
         self.weight = action
         if time_index:
             return ([s2,], close,
-                    self._data_matrices.minor_axis[self._curr_ind])
+                    self._data_matrices.minor_axis[self._curr_ind-1])
         return [s2,], close

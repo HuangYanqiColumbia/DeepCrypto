@@ -44,7 +44,7 @@
         "tau": 0.01,
         "gamma": 1,
         "steps": 500000,
-        "max_episode_len": 2200,
+        "max_episode_len": 22000,
         "max_episodes": 1,
         "random_seed": 123,
         "buffer_size": 1000000,

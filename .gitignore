@@ -17,3 +17,5 @@ mongo_workers/*
 notebooks/*
 !notebooks/.gitkeep
 .vscode
+data_base/minute_data/*
+!data_base/minute_data/.gitkeep
