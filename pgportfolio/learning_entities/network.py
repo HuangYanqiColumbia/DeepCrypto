@@ -76,7 +76,7 @@ class CNN(NeuralNetWork):
                                                  weights_init='variance_scaling')
                 network = network[:, :, 0, 0]
                 network = self._batch_normalize_2d(network)
-                network = tflearn.activations.softmax(network)
+                network = - tflearn.activations.softmax(network)
             else:
                 raise ValueError("the layer {} not supported.".format(layer["type"]))
         return network
