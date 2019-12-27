@@ -56,7 +56,7 @@ class Backtester():
         self._alphas = np.append(self._alphas,(np.append([t],np.reshape(a,(self._actor.a_dim,))))[None,:], axis=0) # a*ret.shift(-1) = rewards.shift(-1)
         self._rewards = np.append(self._rewards, [[t,self._env.reward]], axis=0) #rewards.index: realized date
         if len(self._pvm)>=3:
-            self._replay_buffer.add(last_s, close, len(self._pvm)-3)
+            self._replay_buffer.add(s, close, len(self._pvm)-2)
         if self._replay_buffer.size() > int(self._config["training"]["batch_size"]):
             for k in range(int(self._config["training"]["training_times"])):
                 s_batch, close_batch, stamp_batch = \

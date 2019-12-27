@@ -50,8 +50,9 @@ class Env():
         s2 = self._data[:,:,self._curr_ind-self._window_size+1:self._curr_ind+1]
         close = self._data[0,:,self._curr_ind-self._window_size:self._curr_ind+1].T
         retrn = (self._data[0,:,self._curr_ind] - self._data[0,:,self._curr_ind-1]) / self._data[0,:,self._curr_ind-1]
-        pnl = np.nansum(self.weight * retrn)
-        commission = np.nansum(np.abs(self.weight * (retrn + 1) - action) * self._config["training"]["trading_consumption"])
+        pnl = np.nansum(action * retrn)
+        lst_retrn = (self._data[0,:,self._curr_ind - 1] - self._data[0,:,self._curr_ind-2]) / self._data[0,:,self._curr_ind-2]
+        commission = np.nansum(np.abs(self.weight * (lst_retrn + 1) - action) * self._config["training"]["trading_consumption"])
         self.reward = pnl - commission
         self.weight = action
         if time_index:

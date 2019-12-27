@@ -16,7 +16,7 @@ hdlr = logging.FileHandler("./misc/logs/trainer.log")
 formatter = logging.Formatter('%(name)s - %(levelname)s\n%(message)s')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 logger.propagate = False
 
 class Trainer():
@@ -99,7 +99,7 @@ class Trainer():
         self._pvm = np.append(self._pvm, a, axis=0)
         s2, close = self._env.step(a[0])
         if len(self._pvm)>=3:
-            self._replay_buffer.add(last_s, close, len(self._pvm)-3)
+            self._replay_buffer.add(s, close, len(self._pvm)-2)
         if self._replay_buffer.size() > int(self._config["training"]["batch_size"]):
             for k in range(int(self._config["training"]["training_times"])):
                 s_batch, close_batch, stamp_batch = \
